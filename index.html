@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZenFire Cost Calculator</title>
+    <title>Zentrades Cost Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* styles.css */
         body {
@@ -52,7 +53,7 @@
         }
 
         input {
-            width: 97%;
+            width: 94%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -124,7 +125,12 @@
 
         .subtext {
             font-size: 14px;
-            color: #777;
+            color: #b0b0b0;
+        }
+
+        .result-card.full-width {
+            width: 96%;
+            margin-top: 20px;
         }
 
         .chart-container {
@@ -132,7 +138,6 @@
             margin-top: 20px;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -171,11 +176,17 @@
                     <p class="subtext">Monthly: $<span id="current-cost-monthly">0</span></p>
                 </div>
                 <div class="result-card">
-                    <h3>Estimated Cost with ZenFire</h3>
+                    <h3>Estimated Cost with Zentrades</h3>
                     <p>$<span id="estimated-cost">0</span></p>
                     <p class="subtext">Monthly: $<span id="estimated-cost-monthly">0</span></p>
                 </div>
             </div>
+            <!-- Potential Increase Card -->
+            <div class="result-card full-width">
+                <h3>Potential Increase</h3>
+                <p>$<span id="increase">0</span></p>
+            </div>
+            <!-- Bar Chart -->
             <div class="chart-container">
                 <canvas id="barChart"></canvas>
             </div>
@@ -196,21 +207,22 @@
             const currentCost = technicians * avgTime * inspections * hourlyCost;
             const currentCostMonthly = currentCost / 12;
 
-            // Calculate estimated cost with ZenFire (1.5x to 2x)
+            // Calculate estimated cost with Zentrades (1.5x to 2x)
             const estimatedCostMin = currentCost * 1.5;
             const estimatedCostMax = currentCost * 2;
             const estimatedCostMonthlyMin = estimatedCostMin / 12;
             const estimatedCostMonthlyMax = estimatedCostMax / 12;
 
-            // Calculate potential increase
-            const increaseMin = estimatedCostMin - currentCost;
-            const increaseMax = estimatedCostMax - currentCost;
+            // Calculate potential increase (restrict negative values)
+            const increaseMin = Math.max(estimatedCostMin - currentCost, 0);
+            const increaseMax = Math.max(estimatedCostMax - currentCost, 0);
 
             // Display results
             document.getElementById('current-cost').textContent = currentCost.toFixed(2);
             document.getElementById('current-cost-monthly').textContent = currentCostMonthly.toFixed(2);
             document.getElementById('estimated-cost').textContent = `${estimatedCostMin.toFixed(2)} - ${estimatedCostMax.toFixed(2)}`;
             document.getElementById('estimated-cost-monthly').textContent = `${estimatedCostMonthlyMin.toFixed(2)} - ${estimatedCostMonthlyMax.toFixed(2)}`;
+            document.getElementById('increase').textContent = `${increaseMin.toFixed(2)} - ${increaseMax.toFixed(2)}`;
 
             // Show results section with animation
             document.getElementById('results').classList.add('visible');
