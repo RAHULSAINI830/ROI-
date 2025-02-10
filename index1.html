@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zentrades Cost Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 50px;
+            border-radius: 15px;
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #ee5566;
+            margin-bottom: 25px;
+        }
+
+        .form-step {
+            display: none;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .form-step.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        label {
+            display: block;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        label span {
+            color: #ee5566;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ee5566;
+        }
+
+        button {
+            padding: 12px 30px;
+            background-color: #ee5566;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #cc4455;
+        }
+
+        #results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-container {
+            padding: 25px;
+            border-radius: 12px;
+            background-color: #f9f9f9;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-container h3 {
+            color: #ee5566;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .result-container p {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        #restart-button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #restart-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ROI Calculator</h1>
+        <form id="calculator-form">
+            <div id="step-1" class="form-step active">
+                <label for="technicians">How many technicians/inspectors are performing inspections? <span>*</span></label>
+                <input type="number" id="technicians" min="0" required placeholder="Enter number of technicians">
+                <button type="button" onclick="if (validateCurrentStep()) nextStep(2, 'right')">Next</button>
+            </div>
+
+            <div id="step-2" class="form-step">
+                <label for="avg-time">Average time spent per technician producing reports? (hours) <span>*</span></label>
+                <input type="number" id="avg-time" min="0" required placeholder="Enter time in hours">
+                <button type="button" onclick="if (validateCurrentStep()) nextStep(3, 'right')">Next</button>
+            </div>
+
+            <div id="step-3" class="form-step">
+                <label for="inspections">How many inspections does your company perform annually? <span>*</span></label>
+                <input type="number" id="inspections" min="0" required placeholder="Enter number of inspections">
+                <button type="button" onclick="if (validateCurrentStep()) nextStep(4, 'right')">Next</button>
+            </div>
+
+            <div id="step-4" class="form-step">
+                <label for="hourly-cost">Average hourly cost per technician or inspector ($) <span>*</span></label>
+                <input type="number" id="hourly-cost" min="0" required placeholder="Enter cost per hour">
+                <button type="submit">Calculate</button>
+            </div>
+        </form>
+
+        <div id="results-section">
+            <div class="result-container">
+                <h3>Estimated Cost with Zentrades</h3>
+                <p>$<span id="estimated-cost-visible"></span></p>
+            </div>
+        </div>
+
+        <button id="restart-button" style="display: none;" onclick="restartCalculator()">Restart</button>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function nextStep(step, direction) {
+            const currentElement = document.getElementById(`step-${currentStep}`);
+            const nextElement = document.getElementById(`step-${step}`);
+
+            currentElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            currentElement.style.opacity = 0;
+            currentElement.style.transform = 'translateX(-100%)';
+
+            setTimeout(() => {
+                currentElement.style.display = 'none';
+                nextElement.style.display = 'block';
+                nextElement.style.opacity = 0;
+                nextElement.style.transform = 'translateX(100%)';
+
+                setTimeout(() => {
+                    nextElement.style.opacity = 1;
+                    nextElement.style.transform = 'translateX(0)';
+                }, 100);
+            }, 500);
+
+            currentStep = step;
+        }
+
+        function validateCurrentStep() {
+            const currentInput = document.querySelector(`.form-step.active input`);
+            if (currentInput && currentInput.value.trim() === '') {
+                alert('Please fill out this field before proceeding.');
+                currentInput.focus();
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('calculator-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const technicians = parseFloat(document.getElementById('technicians').value);
+            const avgTime = parseFloat(document.getElementById('avg-time').value);
+            const inspections = parseFloat(document.getElementById('inspections').value);
+            const hourlyCost = parseFloat(document.getElementById('hourly-cost').value);
+
+            const currentCost = technicians * avgTime * inspections * hourlyCost;
+            const estimatedCost = currentCost * 1.5;
+
+            const visibleCost = estimatedCost.toFixed(2);
+
+            document.getElementById('estimated-cost-visible').textContent = visibleCost;
+
+            document.getElementById('calculator-form').style.display = 'none';
+            document.getElementById('results-section').style.display = 'block';
+            document.getElementById('restart-button').style.display = 'block';
+        });
+
+        function restartCalculator() {
+            document.querySelectorAll('input').forEach(input => input.value = '');
+            document.querySelectorAll('.form-step').forEach(step => {
+                step.style.display = 'none';
+                step.style.opacity = 0;
+                step.style.transform = 'translateX(100%)';
+            });
+
+            setTimeout(() => {
+                document.getElementById('step-1').style.display = 'block';
+                document.getElementById('step-1').style.opacity = 1;
+                document.getElementById('step-1').style.transform = 'translateX(0)';
+            }, 100);
+
+            document.getElementById('calculator-form').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            document.getElementById('restart-button').style.display = 'none';
+            currentStep = 1;
+        }
+    </script>
+</body>
+
+</html>
